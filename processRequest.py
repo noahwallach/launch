@@ -6,41 +6,54 @@ import argparse
 import json
 
 headers = {'X-Auth-Token': '8AuatCR8Vqj4LC1rpquzkHAU8kqirXfF'}
+projectId = 'ca73364c-6023-4935-9137-2132e73c20b4'
 
 def getJson(url):
   resp = requests.get(url, headers=headers)
   return resp.json()
 
 def createDevice(url, data):
-  resp = requests.post(url, headers=headers, data=json.dumps(data))
+  resp = requests.post(url, headers=headers, data=data)
   return resp.json()
+
+def deleteDevice(url, data):
+  resp = requests.delete(url, headers=headers)
+  return resp.json()
+
 
 ### main
 parser = argparse.ArgumentParser()
-parser.add_argument('-e', dest='action', help="Show events")
-parser.add_argument('-l', dest='action', help="Show devices")
-parser.add_argument('-a', dest='action', help="Add a server")
-parser.add_argument('-d', dest='action', help="Delete a server with ID", type=str)
+parser.add_argument('-e', dest='events', action='store_true', help="Show events", default=False)
+parser.add_argument('-l', dest='devices', action='store_true', help="Show devices", default=False)
+parser.add_argument('-a', dest='add', action='store_true', help="Add a server")
+parser.add_argument('-d', dest='delete', action='store', help="Delete a server with ID", type=str)
 args = parser.parse_args()
 
-choice = args.action
 pp = pprint.PrettyPrinter(indent=4)
 
-# https://github.com/timeline.json
-if choice == 'events':
-  pp.pprint(getJson('https://api.packet.net/projects/ca73364c-6023-4935-9137-2132e73c20b4/events'))
+if args.events == True:
+  url = ('https://api.packet.net/projects/{}/events'.format(projectId))
+  pp.pprint(getJson(url))
 
-elif choice == 'devices':
-  pp.pprint(getJson('https://api.packet.net/projects/ca73364c-6023-4935-9137-2132e73c20b4/devices'))
+elif args.devices == True:
+  url = ('https://api.packet.net/projects/{}/devices'.format(projectId))
+  pp.pprint(getJson(url))
 
-elif choice == 'add':
+elif args.add == 'add':
   jsonBody = {
 	  "facility": "any",
-    "hostname": "test1.packet.com",
-    "plan": "any"  } 
-  pp.pprint(createDevice('https://api.packet.net/projects/ca73364c-6023-4935-9137-2132e73c20b4/devices',jsonBody))
+    "hostname": "test1",
+    "operating_system": "ubuntu_14_04",
+    "plan": "baremetal_2a4"  
+  } 
+  url = ('https://api.packet.net/projects/{}/devices'.format(projectId))
+  pp.pprint(createDevice(url,jsonBody))
 
-elif choice == 'delete':
-  pass
-print(choice)
+elif args.delete != None:
+  if len(args.delete) > 0:
+    url = ('https://api.packet.net/devices/{}'.format(args.delete))
+    jsonBody=''
+    pp.pprint(deleteDevice(url,jsonBody))
+  
+  
 
